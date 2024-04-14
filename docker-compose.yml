@@ -1,0 +1,83 @@
+version: '3.7'
+
+services:
+  traefik:
+    container_name: traefik
+    image: traefik:v2.5
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.website1_resolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.website1_resolver.acme.email=name@yourmail.de" # must be the same
+      - "--certificatesresolvers.website1_resolver.acme.storage=/letsencrypt/website1.json"
+      - "--certificatesresolvers.website2_resolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.website2_resolver.acme.email=name@yourmail.de" # must be the same
+      - "--certificatesresolvers.website2_resolver.acme.storage=/letsencrypt/website2.json" 
+    ports:
+      - "80:80"
+      - "443:443"
+     # - "8080:8080" 
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./data/traefik/letsencrypt:/letsencrypt"
+    networks:
+      - traefik_network
+
+  website1:
+    container_name: website1
+    image: wordpress:latest
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: mariadb
+      WORDPRESS_DB_USER: root
+      WORDPRESS_DB_PASSWORD: 123
+      WORDPRESS_DB_NAME: website1WP
+    volumes:
+      - "./data/website1:/var/www/html"
+      - "./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini"
+    networks:
+      - traefik_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.website1.entrypoints=websecure"
+      - "traefik.http.routers.website1.rule=Host(`website1.com`)"
+      - "traefik.http.routers.website1.tls=true"
+      - "traefik.http.routers.website1.tls.certresolver=website1_resolver"
+
+  website2:
+    container_name: website2
+    image: wordpress:latest
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: mariadb
+      WORDPRESS_DB_USER: root
+      WORDPRESS_DB_PASSWORD: 123
+      WORDPRESS_DB_NAME: website2WP
+    networks:
+      - traefik_network
+    volumes:
+      - "./data/website2:/var/www/html"
+      - "./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.website2.entrypoints=websecure"
+      - "traefik.http.routers.website2.rule=Host(`website2.com`)"
+      - "traefik.http.routers.website2.tls=true"
+      - "traefik.http.routers.website2.tls.certresolver=website2_resolver"
+
+  mariadb:
+    image: mariadb:latest
+    restart: always
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: 123
+    networks:
+      - traefik_network
+    volumes:
+      - ./data/mariadb:/var/lib/mysql
+      - ./create_databases.sql:/docker-entrypoint-initdb.d/create_databases.sql
+
+networks:
+  traefik_network:
+    external: true
