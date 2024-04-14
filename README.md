@@ -1,4 +1,4 @@
-### Setting up Permissions and Docker Network
+### 1. Setting up Permissions and Docker Network
 
 Make sure to grant execute permission to the setup script and create a Docker network named "traefik_network".
 
@@ -8,7 +8,7 @@ chmod +x setup.sh
 docker network create traefik_network
 ```
 
-### Updating Your Data
+### 2. Updating Your Data
 
 Before proceeding, update the following details:
 
@@ -21,7 +21,7 @@ MYSQL_ROOT_PASSWORD: newpassword
 WORDPRESS_DB_PASSWORD: newpassword
 ```
 
-### Usage
+### 3. Usage
 After updating your data, execute the following command to start the Containers:
 
 ```bash
@@ -41,7 +41,7 @@ CREATE DATABASE IF NOT EXISTS newwebsite;
 
 2. Update docker-compose.yml
 
-  2.1 Update Traefik Container:
+  2.1. Update Traefik Container:
   Add the following block to your Traefik container configuration:
   
   ```yml
@@ -50,7 +50,7 @@ CREATE DATABASE IF NOT EXISTS newwebsite;
   - "--certificatesresolvers.newwebsite_resolver.acme.storage=/letsencrypt/newwebsite.json"
   ```
   
-  2.2 Add new Wordpress Container: 
+  2.2. Add new Wordpress Container: 
   
   ```yml
   newwebsite:
