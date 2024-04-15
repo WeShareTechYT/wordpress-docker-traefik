@@ -28,6 +28,8 @@ After updating your data, execute the following command to start the Containers:
 docker-compose up -d
 ```
 
+Then you can visit your site at https://yoursite.com and proceed with the WordPress installation.
+
 
 ### Adding a New Website
 Follow these steps to add a new website:
